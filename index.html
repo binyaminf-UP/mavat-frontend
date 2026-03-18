@@ -1,364 +1,204 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>מחולל תיקיות תכנית</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;min-height:100vh;
+         display:flex;flex-direction:column;align-items:center;padding:40px 20px;color:#1a1a2e}
+    h1{font-size:26px;margin-bottom:8px}
+    .sub{color:#666;font-size:14px;margin-bottom:32px;text-align:center}
+    .card{background:#fff;border-radius:16px;padding:32px;width:100%;max-width:800px;
+          box-shadow:0 2px 16px rgba(0,0,0,.08);margin-bottom:24px}
+    .section-title{font-size:16px;font-weight:700;margin-bottom:16px;color:#1a1a2e}
 
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      background: #f0f2f5;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 40px 20px;
-      color: #1a1a2e;
-    }
+    /* Upload zone */
+    .drop-zone{border:2px dashed #c0d0ff;border-radius:12px;padding:40px;
+               text-align:center;cursor:pointer;transition:all .2s;background:#f8faff}
+    .drop-zone:hover,.drop-zone.dragover{border-color:#4f7fff;background:#eff4ff}
+    .drop-zone input{display:none}
+    .drop-zone .icon{font-size:40px;margin-bottom:12px}
+    .drop-zone p{color:#666;font-size:14px}
+    .drop-zone .filename{color:#4f7fff;font-weight:600;margin-top:8px;font-size:15px}
 
-    header {
-      width: 100%;
-      max-width: 800px;
-      margin-bottom: 32px;
-      text-align: center;
-    }
+    /* Buttons */
+    button{padding:13px 26px;border:none;border-radius:10px;font-size:15px;
+           cursor:pointer;font-weight:600;transition:all .2s}
+    .btn-primary{background:#4f7fff;color:#fff;width:100%;margin-top:16px}
+    .btn-primary:hover{background:#3a6be0}
+    .btn-primary:disabled{background:#b0c4ff;cursor:not-allowed}
+    .btn-success{background:#22c55e;color:#fff;width:100%;font-size:16px;
+                 padding:15px;border-radius:12px;margin-top:12px}
+    .btn-success:hover{background:#16a34a}
+    .btn-success:disabled{background:#86efac;cursor:not-allowed}
 
-    header h1 {
-      font-size: 28px;
-      color: #1a1a2e;
-      margin-bottom: 8px;
-    }
+    /* Status */
+    .status{display:flex;align-items:center;gap:10px;padding:13px 16px;
+            border-radius:10px;font-size:14px;margin-top:14px}
+    .status.loading{background:#eff6ff;color:#3b82f6}
+    .status.error{background:#fef2f2;color:#dc2626}
+    .status.success{background:#f0fdf4;color:#16a34a}
+    .spinner{width:17px;height:17px;border:3px solid #93c5fd;
+             border-top-color:#3b82f6;border-radius:50%;
+             animation:spin .8s linear infinite;flex-shrink:0}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
-    header p {
-      color: #666;
-      font-size: 15px;
-    }
-
-    .card {
-      background: #fff;
-      border-radius: 16px;
-      padding: 32px;
-      width: 100%;
-      max-width: 800px;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.08);
-      margin-bottom: 24px;
-    }
-
-    .input-group {
-      display: flex;
-      gap: 12px;
-    }
-
-    input[type="text"] {
-      flex: 1;
-      padding: 14px 18px;
-      border: 2px solid #e0e0e0;
-      border-radius: 10px;
-      font-size: 15px;
-      direction: ltr;
-      transition: border-color 0.2s;
-      font-family: monospace;
-    }
-
-    input[type="text"]:focus {
-      outline: none;
-      border-color: #4f7fff;
-    }
-
-    button {
-      padding: 14px 28px;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: all 0.2s;
-    }
-
-    .btn-primary {
-      background: #4f7fff;
-      color: #fff;
-    }
-
-    .btn-primary:hover { background: #3a6be0; }
-    .btn-primary:disabled { background: #b0c4ff; cursor: not-allowed; }
-
-    .btn-success {
-      background: #22c55e;
-      color: #fff;
-      width: 100%;
-      font-size: 17px;
-      padding: 16px;
-      border-radius: 12px;
-      margin-top: 8px;
-    }
-
-    .btn-success:hover { background: #16a34a; }
-    .btn-success:disabled { background: #86efac; cursor: not-allowed; }
-
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 14px 18px;
-      border-radius: 10px;
-      font-size: 14px;
-      margin-top: 16px;
-    }
-
-    .status.loading { background: #eff6ff; color: #3b82f6; }
-    .status.error   { background: #fef2f2; color: #dc2626; }
-    .status.success { background: #f0fdf4; color: #16a34a; }
-
-    .spinner {
-      width: 18px; height: 18px;
-      border: 3px solid #93c5fd;
-      border-top-color: #3b82f6;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 8px;
-    }
-
-    th {
-      background: #f8faff;
-      padding: 12px 16px;
-      text-align: right;
-      font-size: 13px;
-      color: #666;
-      border-bottom: 2px solid #e8edf5;
-      white-space: nowrap;
-      width: 200px;
-    }
-
-    td {
-      padding: 12px 16px;
-      border-bottom: 1px solid #f0f0f0;
-      font-size: 14px;
-    }
-
-    td.editable {
-      cursor: pointer;
-    }
-
-    td[contenteditable="true"] {
-      background: #fffbeb;
-      outline: 2px solid #fbbf24;
-      border-radius: 4px;
-    }
-
-    .edit-hint {
-      font-size: 12px;
-      color: #999;
-      margin-top: 8px;
-      text-align: left;
-    }
-
-    .section-title {
-      font-size: 17px;
-      font-weight: 700;
-      color: #1a1a2e;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .badge {
-      background: #e8f0ff;
-      color: #4f7fff;
-      padding: 2px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    #result-section { display: none; }
-
-    .logo { font-size: 32px; margin-bottom: 8px; }
+    /* Table */
+    table{width:100%;border-collapse:collapse;margin-top:4px}
+    th{background:#f8faff;padding:11px 14px;text-align:right;font-size:13px;
+       color:#666;border-bottom:2px solid #e8edf5;width:200px;white-space:nowrap}
+    td{padding:11px 14px;border-bottom:1px solid #f0f0f0;font-size:14px}
+    td[contenteditable="true"]{background:#fffbeb;outline:2px solid #fbbf24;border-radius:4px}
+    .hint{font-size:12px;color:#999;margin-top:8px;text-align:left}
+    .badge{background:#e8f0ff;color:#4f7fff;padding:2px 10px;border-radius:20px;
+           font-size:12px;font-weight:600;margin-right:8px}
+    #step2{display:none}
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="logo">🗂️</div>
-    <h1>מחולל תיקיות תכנית</h1>
-    <p>הזן קישור מאתר מבא"ת — המערכת תשאב את הנתונים ותיצור קובץ ZIP עם כל המסמכים</p>
-  </header>
+<h1>🗂️ מחולל תיקיות תכנית</h1>
+<p class="sub">העלה קובץ הוראות תכנית (PDF) — המערכת תחלץ את הנתונים ותיצור ZIP עם כל המסמכים</p>
 
-  <!-- Step 1: URL input -->
-  <div class="card">
-    <div class="section-title">שלב 1 — הזן קישור לתכנית</div>
-    <div class="input-group">
-      <input
-        type="text"
-        id="url-input"
-        placeholder="https://mavat.iplan.gov.il/SV4/1/6005482340/310"
-        value=""
-      />
-      <button class="btn-primary" id="scrape-btn" onclick="scrape()">שאוב נתונים</button>
-    </div>
-    <div id="scrape-status"></div>
+<!-- Step 1 -->
+<div class="card">
+  <div class="section-title">שלב 1 — העלה קובץ הוראות תכנית (PDF)</div>
+  <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()"
+       ondragover="event.preventDefault();this.classList.add('dragover')"
+       ondragleave="this.classList.remove('dragover')"
+       ondrop="handleDrop(event)">
+    <input type="file" id="file-input" accept=".pdf" onchange="handleFile(this.files[0])"/>
+    <div class="icon">📄</div>
+    <p>גרור קובץ PDF לכאן או לחץ לבחירה</p>
+    <div class="filename" id="filename"></div>
   </div>
+  <button class="btn-primary" id="parse-btn" onclick="parsePDF()" disabled>
+    חלץ נתונים מה-PDF
+  </button>
+  <div id="parse-status"></div>
+</div>
 
-  <!-- Step 2: Confirm data -->
-  <div class="card" id="result-section">
-    <div class="section-title">
-      שלב 2 — אשר את הנתונים
-      <span class="badge">לחץ על שדה לעריכה</span>
-    </div>
-
-    <table id="data-table">
-      <tbody></tbody>
-    </table>
-
-    <p class="edit-hint">💡 ניתן ללחוץ על כל שדה כדי לערוך אותו לפני יצירת הקבצים</p>
-
-    <button class="btn-success" id="generate-btn" onclick="generate()">
-      ✅ אשר וצור קובץ ZIP
-    </button>
-    <div id="generate-status"></div>
+<!-- Step 2 -->
+<div class="card" id="step2">
+  <div class="section-title">
+    שלב 2 — אשר את הנתונים
+    <span class="badge">לחץ על שדה לעריכה</span>
   </div>
+  <table><tbody id="data-tbody"></tbody></table>
+  <p class="hint">💡 ניתן ללחוץ על כל שדה כדי לערוך לפני יצירת הקבצים</p>
+  <button class="btn-success" id="gen-btn" onclick="generate()">✅ אשר וצור קובץ ZIP</button>
+  <div id="gen-status"></div>
+</div>
 
 <script>
-  // ─── Config ──────────────────────────────────────────────────────────────
-  const BACKEND = 'BACKEND_URL_PLACEHOLDER';
+const BACKEND = 'BACKEND_URL_PLACEHOLDER';
 
-  // Field labels for display
-  const FIELD_LABELS = {
-    plan_number:     'מספר תכנית',
-    plan_name:       'שם תכנית',
-    plan_type:       'סוג תכנית',
-    area_dunam:      'שטח התכנית',
-    planning_area:   'מרחב תכנון מקומי',
-    local_authority: 'רשות מקומית',
-    district:        'מחוז',
-    has_detailed:    'מכילה הוראות תכנית מפורטת',
-    union_type:      'סוג איחוד וחלוקה',
-    background:      'דברי הסבר (רקע)',
-    applicant:       'מגיש התכנית',
-    developer:       'יזם',
-    editor:          'עורך התכנית',
-    surveyor:        'מודד',
-    url:             'קישור למבא"ת',
-  };
+const FIELDS = {
+  plan_number:     'מספר תכנית',
+  plan_name:       'שם תכנית',
+  plan_type:       'סוג תכנית',
+  area_dunam:      'שטח התכנית',
+  planning_area:   'מרחב תכנון מקומי',
+  local_authority: 'רשות מקומית',
+  district:        'מחוז',
+  has_detailed:    'מכילה הוראות תכנית מפורטת',
+  union_type:      'סוג איחוד וחלוקה',
+  background:      'דברי הסבר (רקע)',
+  applicant:       'מגיש התכנית',
+  developer:       'יזם',
+  editor:          'עורך התכנית',
+  surveyor:        'מודד',
+  url:             'קישור למבא"ת',
+};
 
-  let currentData = {};
+let selectedFile = null;
+let currentData = {};
 
-  // ─── Scrape ───────────────────────────────────────────────────────────────
-  async function scrape() {
-    const url = document.getElementById('url-input').value.trim();
-    if (!url) return;
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f) handleFile(f);
+}
 
-    setStatus('scrape-status', 'loading', 'שואב נתונים מהאתר... (עשוי לקחת כ-30 שניות)');
-    document.getElementById('scrape-btn').disabled = true;
-    document.getElementById('result-section').style.display = 'none';
-
-    try {
-      const res = await fetch(`${BACKEND}/api/scrape`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
-      });
-      const json = await res.json();
-
-      if (!res.ok || json.error) {
-        setStatus('scrape-status', 'error', json.error || 'שגיאה בשאיבת הנתונים');
-        return;
-      }
-
-      currentData = json.data;
-      renderTable(currentData);
-      document.getElementById('result-section').style.display = 'block';
-      setStatus('scrape-status', 'success', '✓ הנתונים נשאבו בהצלחה — בדוק ואשר למטה');
-
-    } catch (e) {
-      setStatus('scrape-status', 'error', 'שגיאת תקשורת עם השרת: ' + e.message);
-    } finally {
-      document.getElementById('scrape-btn').disabled = false;
-    }
+function handleFile(f) {
+  if (!f || !f.name.toLowerCase().endsWith('.pdf')) {
+    alert('יש להעלות קובץ PDF בלבד');
+    return;
   }
+  selectedFile = f;
+  document.getElementById('filename').textContent = f.name;
+  document.getElementById('parse-btn').disabled = false;
+}
 
-  // ─── Render table ─────────────────────────────────────────────────────────
-  function renderTable(data) {
-    const tbody = document.querySelector('#data-table tbody');
-    tbody.innerHTML = '';
+async function parsePDF() {
+  if (!selectedFile) return;
+  setStatus('parse-status', 'loading', 'מעבד את ה-PDF...');
+  document.getElementById('parse-btn').disabled = true;
+  document.getElementById('step2').style.display = 'none';
 
-    for (const [key, label] of Object.entries(FIELD_LABELS)) {
-      const val = data[key] || '';
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <th>${label}</th>
-        <td class="editable" data-key="${key}" contenteditable="true">${val}</td>
-      `;
-      tbody.appendChild(tr);
-    }
+  const formData = new FormData();
+  formData.append('file', selectedFile);
+
+  try {
+    const res = await fetch(`${BACKEND}/api/parse-pdf`, { method: 'POST', body: formData });
+    const json = await res.json();
+    if (!res.ok || json.error) { setStatus('parse-status','error',json.error||'שגיאה'); return; }
+    currentData = json.data;
+    renderTable(currentData);
+    document.getElementById('step2').style.display = 'block';
+    setStatus('parse-status','success','✓ הנתונים חולצו בהצלחה — בדוק ואשר למטה');
+  } catch(e) {
+    setStatus('parse-status','error','שגיאת תקשורת: '+e.message);
+  } finally {
+    document.getElementById('parse-btn').disabled = false;
   }
+}
 
-  // ─── Generate ─────────────────────────────────────────────────────────────
-  async function generate() {
-    // Collect current values from table
-    const cells = document.querySelectorAll('#data-table td[data-key]');
-    cells.forEach(cell => {
-      currentData[cell.dataset.key] = cell.innerText.trim();
-    });
-
-    setStatus('generate-status', 'loading', 'מייצר קבצים ואורז ZIP... (עשוי לקחת כחצי דקה)');
-    document.getElementById('generate-btn').disabled = true;
-
-    try {
-      const res = await fetch(`${BACKEND}/api/generate`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(currentData)
-      });
-
-      if (!res.ok) {
-        const json = await res.json();
-        setStatus('generate-status', 'error', json.error || 'שגיאה ביצירת הקבצים');
-        return;
-      }
-
-      // Trigger download
-      const blob = await res.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      const planNum = currentData.plan_number || 'plan';
-      const planName = currentData.plan_name || '';
-      a.download = `${planNum} - ${planName}.zip`;
-      a.click();
-      URL.revokeObjectURL(blobUrl);
-
-      setStatus('generate-status', 'success', '✓ הקובץ מוכן — ההורדה החלה');
-
-    } catch (e) {
-      setStatus('generate-status', 'error', 'שגיאת תקשורת: ' + e.message);
-    } finally {
-      document.getElementById('generate-btn').disabled = false;
-    }
+function renderTable(data) {
+  const tbody = document.getElementById('data-tbody');
+  tbody.innerHTML = '';
+  for (const [key, label] of Object.entries(FIELDS)) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<th>${label}</th>
+      <td data-key="${key}" contenteditable="true">${data[key]||''}</td>`;
+    tbody.appendChild(tr);
   }
+}
 
-  // ─── Helpers ──────────────────────────────────────────────────────────────
-  function setStatus(id, type, msg) {
-    const el = document.getElementById(id);
-    const icons = { loading: '<div class="spinner"></div>', error: '❌', success: '✅' };
-    el.innerHTML = `<div class="status ${type}">${icons[type]} <span>${msg}</span></div>`;
-  }
-
-  // Allow Enter key to trigger scrape
-  document.getElementById('url-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') scrape();
+async function generate() {
+  document.querySelectorAll('#data-tbody td[data-key]').forEach(td => {
+    currentData[td.dataset.key] = td.innerText.trim();
   });
-</script>
+  setStatus('gen-status','loading','מייצר קבצים ואורז ZIP...');
+  document.getElementById('gen-btn').disabled = true;
 
+  try {
+    const res = await fetch(`${BACKEND}/api/generate`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(currentData)
+    });
+    if (!res.ok) { const j=await res.json(); setStatus('gen-status','error',j.error||'שגיאה'); return; }
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${currentData.plan_number||'plan'} - ${currentData.plan_name||''}.zip`;
+    a.click();
+    setStatus('gen-status','success','✓ הקובץ מוכן — ההורדה החלה!');
+  } catch(e) {
+    setStatus('gen-status','error','שגיאת תקשורת: '+e.message);
+  } finally {
+    document.getElementById('gen-btn').disabled = false;
+  }
+}
+
+function setStatus(id, type, msg) {
+  const icons = {loading:'<div class="spinner"></div>', error:'❌', success:'✅'};
+  document.getElementById(id).innerHTML =
+    `<div class="status ${type}">${icons[type]}<span>${msg}</span></div>`;
+}
+</script>
 </body>
 </html>
