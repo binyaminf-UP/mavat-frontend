@@ -64,7 +64,12 @@
 
 <!-- Step 1 -->
 <div class="card">
-  <div class="section-title">שלב 1 — העלה קובץ הוראות תכנית (PDF)</div>
+  <div class="section-title">שלב 1 — הזן מספר תכנית או העלה קובץ הוראות (PDF)</div>
+  <input id="pn-input" placeholder="מספר תכנית, לדוגמה 652-1501279" dir="ltr"
+         onkeydown="if(event.key==='Enter')parseByNumber()"
+         style="width:100%;padding:13px 16px;border:2px solid #c0d0ff;border-radius:10px;font-size:15px;text-align:right"/>
+  <button class="btn-primary" id="pn-btn" onclick="parseByNumber()">משוך הוראות לפי מספר תכנית</button>
+  <p style="text-align:center;color:#999;font-size:13px;margin:18px 0">או העלה PDF ידנית (אם התכנית לא נמצאה):</p>
   <div class="drop-zone" id="drop-zone" onclick="document.getElementById('file-input').click()"
        ondragover="event.preventDefault();this.classList.add('dragover')"
        ondragleave="this.classList.remove('dragover')"
@@ -154,6 +159,31 @@ async function parsePDF() {
     setStatus('parse-status','error','שגיאת תקשורת: '+e.message);
   } finally {
     document.getElementById('parse-btn').disabled = false;
+  }
+}
+
+async function parseByNumber() {
+  const pn = document.getElementById('pn-input').value.trim();
+  if (!pn) return;
+  setStatus('parse-status', 'loading', 'מחפש את ההוראות ומחלץ נתונים... (בפעם הראשונה זה יכול לקחת עד דקה)');
+  document.getElementById('pn-btn').disabled = true;
+  document.getElementById('step2').style.display = 'none';
+  try {
+    const res = await fetch(`${BACKEND}/api/parse-number`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({plan_number: pn})
+    });
+    const json = await res.json();
+    if (!res.ok || json.error) { setStatus('parse-status', 'error', json.error || 'שגיאה'); return; }
+    currentData = json.data;
+    renderTable(currentData);
+    document.getElementById('step2').style.display = 'block';
+    setStatus('parse-status', 'success',
+      `נמצא מסמך הוראות מתאריך ${json.doc_date} - ודא במבא"ת שזו הגרסה העדכנית`);
+  } catch(e) {
+    setStatus('parse-status', 'error', 'שגיאת תקשורת: ' + e.message);
+  } finally {
+    document.getElementById('pn-btn').disabled = false;
   }
 }
 
