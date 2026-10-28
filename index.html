@@ -99,6 +99,16 @@
 
 <script>
 const BACKEND = 'https://mavat-backend.onrender.com';
+// POSTs go through the Netlify proxy (same origin) because some networks block
+// POST requests to onrender.com. The direct GET below only wakes the free Render
+// instance up in advance, since the proxy gives up after 26 seconds.
+const API = '/api';
+let warmup = fetch(`${BACKEND}/health`).catch(() => {});
+async function ensureAwake(statusId) {
+  setStatus(statusId, 'loading', 'מעיר את השרת (עד דקה בפעם הראשונה)...');
+  await warmup;
+  warmup = Promise.resolve();
+}
 
 const FIELDS = {
   plan_number:     'מספר תכנית',
@@ -148,7 +158,8 @@ async function parsePDF() {
   formData.append('file', selectedFile);
 
   try {
-    const res = await fetch(`${BACKEND}/api/parse-pdf`, { method: 'POST', body: formData });
+    await ensureAwake('parse-status');
+    const res = await fetch(`${API}/parse-pdf`, { method: 'POST', body: formData });
     const json = await res.json();
     if (!res.ok || json.error) { setStatus('parse-status','error',json.error||'שגיאה'); return; }
     currentData = json.data;
@@ -169,7 +180,9 @@ async function parseByNumber() {
   document.getElementById('pn-btn').disabled = true;
   document.getElementById('step2').style.display = 'none';
   try {
-    const res = await fetch(`${BACKEND}/api/parse-number`, {
+    await ensureAwake('parse-status');
+    setStatus('parse-status', 'loading', 'מחפש את ההוראות ומחלץ נתונים...');
+    const res = await fetch(`${API}/parse-number`, {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({plan_number: pn})
     });
@@ -206,7 +219,9 @@ async function generate() {
   document.getElementById('gen-btn').disabled = true;
 
   try {
-    const res = await fetch(`${BACKEND}/api/generate`, {
+    await ensureAwake('gen-status');
+    setStatus('gen-status','loading','מייצר קבצים ואורז ZIP...');
+    const res = await fetch(`${API}/generate`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify(currentData)
     });

@@ -1,3 +1,12 @@
+# Proxy API calls through Netlify: some networks (e.g. government office web
+# filters) block POST requests to onrender.com but allow netlify.app.
+# Note: Netlify proxy requests time out after 26 seconds.
+[[redirects]]
+  from = "/api/*"
+  to = "https://mavat-backend.onrender.com/api/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
